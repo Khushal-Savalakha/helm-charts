@@ -1,61 +1,56 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "skill-app-chart.fullname" . }}
-  labels:
-    {{- include "skill-app-chart.labels" . | nindent 4 }}
+  name: {{ include "skill-app.fullname" . }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
-      {{- include "skill-app-chart.selectorLabels" . | nindent 6 }}
+      app: {{ include "skill-app.name" . }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "skill-app-chart.selectorLabels" . | nindent 8 }}
+        app: {{ include "skill-app.name" . }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "skill-app-chart.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-4-71.ap-south-1.compute.internal
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        - name: {{ include "skill-app.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+            - containerPort: {{ .Values.service.port }}
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
+          volumeMounts:
+            {{- if .Values.persistence.uploads.enabled }}
+            - name: uploads
+              mountPath: {{ .Values.persistence.uploads.mountPath }}
+            {{- end }}
+            {{- if .Values.persistence.staticfiles.enabled }}
+            - name: staticfiles
+              mountPath: {{ .Values.persistence.staticfiles.mountPath }}
+            {{- end }}
+            {{- if .Values.persistence.media.enabled }}
+            - name: media
+              mountPath: {{ .Values.persistence.media.mountPath }}
+            {{- end }}
+      volumes:
+        {{- if .Values.persistence.uploads.enabled }}
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.uploads.existingClaim }}
+        {{- end }}
+        {{- if .Values.persistence.staticfiles.enabled }}
+        - name: staticfiles
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.staticfiles.existingClaim }}
+        {{- end }}
+        {{- if .Values.persistence.media.enabled }}
+        - name: media
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.media.existingClaim }}
+        {{- end }}
