@@ -31,7 +31,13 @@ env:
   ESCROW_INTEGRATION_HELPER_URL: "https://test.com"
   EMAIL_USER: "test2@gmail.com"
   EMAIL_PASS: "test"
-
+  PROJECT_ID: "test-1234"
+  CLIENT_URL: "http://localhost:3000"
+  STRIPE_SECRET_KEY_CLIENT: "sk_test_"
+  STRIPE_SECRET_KEY: "sk_test"
+  STRIPE_WEBHOOK_SECRET: "whsec_"
+  PLATFORM_FEE_PERCENT: 1
+  COMMISSION_PERCENT: 1
 persistence:
   uploads:
     enabled: true
@@ -45,3 +51,27 @@ persistence:
     enabled: true
     existingClaim: test-app-media-pvc
     mountPath: /app/media
+
+serviceAccount:
+  create: true
+  name: test-app-sa
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: test.innovix.club
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+
+imagePullSecrets:
+  - name: ecr-secret
