@@ -38,6 +38,28 @@ spec:
             - name: {{ $key }}
               value: "{{ $value }}"
             {{- end }}
+          volumeMounts:
+            {{- if .Values.persistence.uploads.enabled }}
+            - name: shared-storage
+              mountPath: {{ .Values.persistence.uploads.mountPath }}
+              {{- if .Values.persistence.uploads.subPath }}
+              subPath: {{ .Values.persistence.uploads.subPath }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.persistence.staticfiles.enabled }}
+            - name: shared-storage
+              mountPath: {{ .Values.persistence.staticfiles.mountPath }}
+              {{- if .Values.persistence.staticfiles.subPath }}
+              subPath: {{ .Values.persistence.staticfiles.subPath }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.persistence.media.enabled }}
+            - name: shared-storage
+              mountPath: {{ .Values.persistence.media.mountPath }}
+              {{- if .Values.persistence.media.subPath }}
+              subPath: {{ .Values.persistence.media.subPath }}
+              {{- end }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
@@ -52,6 +74,10 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - name: shared-storage
+        persistentVolumeClaim:
+          claimName: skill-app-media-pvc
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

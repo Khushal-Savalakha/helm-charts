@@ -1,8 +1,8 @@
 replicaCount: 1
 
 image:
-  repository: 28348231.dkr.ecr.ap-south-2.amazonaws.com/test-web-app
-  tag: "2"
+  repository: amazonaws.com/test-web-app
+  tag: "6"
   pullPolicy: Always
 
 service:
@@ -40,17 +40,18 @@ env:
   COMMISSION_PERCENT: 1
 persistence:
   uploads:
-    enabled: true
-    existingClaim: test-app-media-pvc
+    enabled: false
     mountPath: /app/dist/uploads
   staticfiles:
     enabled: true
     existingClaim: test-app-media-pvc
     mountPath: /app/staticfiles
+    subPath: staticfiles
   media:
     enabled: true
     existingClaim: test-app-media-pvc
     mountPath: /app/media
+    subPath: media
 
 serviceAccount:
   create: true
