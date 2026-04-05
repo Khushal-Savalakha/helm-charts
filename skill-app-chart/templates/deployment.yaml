@@ -60,6 +60,11 @@ spec:
               subPath: {{ .Values.persistence.media.subPath }}
               {{- end }}
             {{- end }}
+            # ── ADD: mount shared log volume ──────────────
+            {{- if .Values.logVolume.enabled }}
+            - name: app-logs
+              mountPath: {{ .Values.logVolume.mountPath }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
